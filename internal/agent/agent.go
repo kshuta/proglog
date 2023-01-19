@@ -6,15 +6,16 @@ import (
 	"net"
 	"sync"
 
-	api "github.com/kshuta/proglog/api/v1"
+	"go.uber.org/zap"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
+
+	api "github.com/kshuta/proglog/api/v1"
 	"github.com/kshuta/proglog/internal/auth"
 	"github.com/kshuta/proglog/internal/discovery"
 	"github.com/kshuta/proglog/internal/log"
 	"github.com/kshuta/proglog/internal/server"
-	"go.uber.org/zap"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 )
 
 type Agent struct {
@@ -101,13 +102,11 @@ func (a *Agent) setupServer() error {
 		creds := credentials.NewTLS(a.Config.ServerTLSConfig)
 		opts = append(opts, grpc.Creds(creds))
 	}
-
 	var err error
 	a.server, err = server.NewGRPCServer(serverConfig, opts...)
 	if err != nil {
 		return err
 	}
-
 	rpcAddr, err := a.RPCAddr()
 	if err != nil {
 		return err
@@ -116,7 +115,6 @@ func (a *Agent) setupServer() error {
 	if err != nil {
 		return err
 	}
-
 	go func() {
 		if err := a.server.Serve(ln); err != nil {
 			_ = a.Shutdown()
@@ -130,12 +128,12 @@ func (a *Agent) setupMembership() error {
 	if err != nil {
 		return err
 	}
-
 	var opts []grpc.DialOption
 	if a.Config.PeerTLSConfig != nil {
 		opts = append(opts, grpc.WithTransportCredentials(
 			credentials.NewTLS(a.Config.PeerTLSConfig),
-		))
+		),
+		)
 	}
 	conn, err := grpc.Dial(rpcAddr, opts...)
 	if err != nil {
