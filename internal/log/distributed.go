@@ -356,6 +356,7 @@ func (s *StreamLayer) Dial(
 }
 
 func (s *StreamLayer) Accept() (net.Conn, error) {
+	fmt.Println("In accept: ", s.ln.Addr().String())
 	conn, err := s.ln.Accept()
 	if err != nil {
 		return nil, err
@@ -418,7 +419,7 @@ func (l *DistributedLog) Leave(id string) error {
 
 func (l *DistributedLog) WaitForLeader(timeout time.Duration) error {
 	timeoutc := time.After(timeout)
-	ticker := time.NewTicker(time.Second)
+	ticker := time.NewTicker(time.Millisecond)
 	defer ticker.Stop()
 	for {
 		select {
