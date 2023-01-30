@@ -18,6 +18,7 @@ import (
 	api "github.com/kshuta/proglog/api/v1"
 	"github.com/kshuta/proglog/internal/agent"
 	"github.com/kshuta/proglog/internal/config"
+	"github.com/kshuta/proglog/internal/loadbalance"
 )
 
 func TestAgent(t *testing.T) {
@@ -93,6 +94,8 @@ func TestAgent(t *testing.T) {
 		},
 	)
 	require.NoError(t, err)
+
+	time.Sleep(3 * time.Second)
 	consumeResponse, err := leaderClient.Consume(
 		context.Background(),
 		&api.ConsumeRequest{
@@ -133,7 +136,8 @@ func client(
 	rpcAddr, err := agent.Config.RPCAddr()
 	require.NoError(t, err)
 	conn, err := grpc.Dial(fmt.Sprintf(
-		"%s",
+		"%s:///%s",
+		loadbalance.Name,
 		rpcAddr,
 	), opts...)
 	require.NoError(t, err)
